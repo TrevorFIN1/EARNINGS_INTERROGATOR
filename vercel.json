@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "analyze.js": {
-      "runtime": "node@20"
-    }
-  },
   "routes": [
     { "src": "/api/analyze", "dest": "/analyze.js" },
     { "src": "/(.*)", "dest": "/index.html" }
