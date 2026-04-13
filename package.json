@@ -1,8 +1,0 @@
-{
-  "name": "earnings-interrogator",
-  "version": "1.0.0",
-  "description": "AI-powered earnings call transcript analyzer",
-  "engines": {
-    "node": ">=18"
-  }
-}
