@@ -137,4 +137,157 @@ textarea::placeholder{color:var(--text3)}
 .ds-subtitle{font-family:var(--font-m);font-size:10px;color:var(--text3);letter-spacing:0.08em}
 .ds-body{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:14px}
 .ds-pills{display:flex;flex-wrap:wrap;gap:8px}
-.ds-pill{font-family:var(--font-m);font-size:10px;padding:4px 10px;border-radius:4px;background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);letter-
+.ds-pill{font-family:var(--font-m);font-size:10px;padding:4px 10px;border-radius:4px;background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);letter-spacing:0.06em}
+footer{text-align:center;padding:36px 0 16px;border-top:1px solid var(--border);margin-top:60px}
+footer p{font-family:var(--font-m);font-size:11px;color:var(--text3);line-height:1.8}
+@media(max-width:600px){.wrap{padding:0 18px 60px}.card{padding:18px}.counter-row{grid-template-columns:1fr 1fr}.res-header{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="nav-logo">
+      <div class="logo-mark">EI</div>
+      <span class="logo-text">Earnings Interrogator</span>
+    </div>
+    <span class="nav-tag">Powered by Claude AI</span>
+  </nav>
+  <div class="hero">
+    <div class="hero-eyebrow">Wall Street Intelligence</div>
+    <h1>Read Between<br>the <em>Lines</em></h1>
+    <p>AI-powered analysis that decodes what management is really saying — with sub-scores, deduction breakdowns, and highlighted evidence.</p>
+  </div>
+  <div class="card">
+    <div class="card-label">Transcript Input</div>
+    <textarea id="transcript" placeholder="Paste any earnings call transcript here..."></textarea>
+    <div class="gen-bar" id="genBar"><div class="gen-bar-fill"></div></div>
+    <div class="gen-txt" id="genTxt">Generating realistic transcript...</div>
+    <div class="err" id="errBox"></div>
+    <div class="btn-row">
+      <button class="btn-primary" id="analyzeBtn" onclick="runAnalyze()"><span id="aBtnC">Analyze Call</span></button>
+      <button class="btn-ghost" id="generateBtn" onclick="runGenerate()"><span id="gBtnC">&#9670; Generate Random Call</span></button>
+    </div>
+  </div>
+  <div id="results">
+    <div class="res-header">
+      <div>
+        <div class="res-company" id="resCompany"></div>
+        <div class="res-title" id="resTitle"></div>
+      </div>
+      <div class="score-block">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100" width="100" height="100">
+            <circle class="ring-bg" cx="50" cy="50" r="43"/>
+            <circle class="ring-fill" id="ringFill" cx="50" cy="50" r="43" stroke-dasharray="270.2" stroke-dashoffset="270.2"/>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-num" id="ringNum">—</div>
+            <div class="ring-denom">/100</div>
+          </div>
+        </div>
+        <div class="grade-badge" id="gradeBadge"></div>
+      </div>
+    </div>
+    <div class="score-reasoning" id="scoreReasoning"></div>
+    <div class="deductions" id="deductionsSection">
+      <div class="deduction-title">Score deductions — why points were lost</div>
+      <div id="deductionsList"></div>
+    </div>
+    <div class="sent-row">
+      <div class="sent-pill" id="sentPill"></div>
+      <div class="sent-note" id="sentNote"></div>
+    </div>
+    <div class="counter-row">
+      <div class="counter-card"><div class="counter-num" style="color:var(--red)" id="cntRed">0</div><div class="counter-label">Red Flags</div></div>
+      <div class="counter-card"><div class="counter-num" style="color:var(--green)" id="cntGreen">0</div><div class="counter-label">Positive Signals</div></div>
+      <div class="counter-card"><div class="counter-num" style="color:var(--text2)" id="cntTotal">0</div><div class="counter-label">Total Flags</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="card-label" style="margin-bottom:14px">Sub-category scores</div>
+    <div class="sub-scores" id="subScores"></div>
+    <div class="divider"></div>
+    <div class="card-label" style="margin-bottom:12px">Key metrics mentioned</div>
+    <div class="metrics-grid" id="metricsGrid"></div>
+    <div class="divider"></div>
+    <div class="card-label" style="margin-bottom:12px">Analyst flags</div>
+    <div class="flags-list" id="flagsList"></div>
+    <div class="divider"></div>
+    <div class="card-label" style="margin-bottom:12px">Questions you should be asking</div>
+    <div class="questions-list" id="questionsList"></div>
+    <div class="divider"></div>
+    <div class="card-label" style="margin-bottom:12px">Analyst verdict</div>
+    <div class="verdict-box"><div class="verdict-text" id="verdictText"></div></div>
+    <div class="data-source" id="dataSource">
+      <div class="ds-header">
+        <div class="ds-icon">&#128202;</div>
+        <div>
+          <div class="ds-title">About this analysis</div>
+          <div class="ds-subtitle">Methodology &amp; data sourcing</div>
+        </div>
+      </div>
+      <div class="ds-body" id="dsBody"></div>
+      <div class="ds-pills">
+        <span class="ds-pill">NLP Pattern Recognition</span>
+        <span class="ds-pill">Hedge Word Detection</span>
+        <span class="ds-pill">Guidance Specificity Scoring</span>
+        <span class="ds-pill">Sentiment Analysis</span>
+        <span class="ds-pill">Academic Financial Research</span>
+        <span class="ds-pill">Claude AI (Anthropic)</span>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>
+  <p>Earnings Interrogator &mdash; AI analysis powered by Claude (Anthropic)<br>Not financial advice. For educational and research purposes only.</p>
+</footer>
+<script>
+function showErr(m){var e=document.getElementById('errBox');e.textContent=m;e.style.display='block';}
+function hideErr(){document.getElementById('errBox').style.display='none';}
+function setAL(on){var btn=document.getElementById('analyzeBtn'),c=document.getElementById('aBtnC');btn.disabled=on;c.innerHTML=on?'<span class="spin"></span> Analyzing...':'Analyze Call';}
+function setGL(on){var btn=document.getElementById('generateBtn'),c=document.getElementById('gBtnC');var bar=document.getElementById('genBar'),gt=document.getElementById('genTxt');btn.disabled=on;document.getElementById('analyzeBtn').disabled=on;if(on){c.innerHTML='<span class="spin spin-l"></span> Generating...';bar.classList.add('on');gt.classList.add('on');}else{c.innerHTML='&#9670; Generate Random Call';bar.classList.remove('on');gt.classList.remove('on');}}
+async function runGenerate(){hideErr();setGL(true);try{var resp=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'generate'})});var d=await resp.json();if(!resp.ok||d.error)throw new Error(d.error||'Generation failed');document.getElementById('transcript').value=d.transcript;}catch(e){showErr('Generation failed: '+e.message);}setGL(false);}
+async function runAnalyze(){hideErr();var t=document.getElementById('transcript').value.trim();if(!t){showErr('Please paste a transcript or generate a random one first.');return;}setAL(true);document.getElementById('results').style.display='none';try{var resp=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'analyze',transcript:t})});var d=await resp.json();if(!resp.ok||d.error)throw new Error(d.error||'Analysis failed');renderResults(d);}catch(e){showErr('Analysis failed: '+e.message);}setAL(false);}
+function scoreCol(s){return s>=75?'var(--green)':s>=50?'var(--amber)':s>=25?'#f97316':'var(--red)';}
+function gradeStyle(g){var m={A:'background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)',B:'background:rgba(34,197,94,0.05);color:#86efac;border:1px solid rgba(134,239,172,0.2)',C:'background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)',D:'background:rgba(249,115,22,0.08);color:#f97316;border:1px solid rgba(249,115,22,0.2)',F:'background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)'};return m[g]||m.C;}
+function sentStyle(s){if(s==='Bullish')return'background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)';if(s==='Cautiously Bullish')return'background:rgba(34,197,94,0.05);color:#86efac;border:1px solid rgba(134,239,172,0.15)';if(s==='Cautiously Bearish')return'background:rgba(249,115,22,0.08);color:#f97316;border:1px solid rgba(249,115,22,0.2)';if(s==='Bearish')return'background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)';return'background:rgba(255,255,255,0.04);color:var(--text2);border:1px solid var(--border2)';}
+function trendIcon(t){if(t==='up')return'<span class="metric-trend-up">&#9650;</span>';if(t==='down')return'<span class="metric-trend-down">&#9660;</span>';return'<span class="metric-trend-flat">&mdash;</span>';}
+function subColor(s){return s>=75?'var(--green)':s>=50?'var(--amber)':s>=25?'#f97316':'var(--red)';}
+function renderResults(r){
+  var sc=Math.round(r.confidence_score||0);
+  var col=scoreCol(sc);
+  document.getElementById('resCompany').textContent=r.company||'Company';
+  document.getElementById('resTitle').textContent=(r.quarter||'Recent Quarter')+' Earnings Call Analysis';
+  var circ=270.2;
+  document.getElementById('ringNum').textContent=sc;
+  document.getElementById('ringNum').style.color=col;
+  var fill=document.getElementById('ringFill');
+  fill.style.stroke=col;
+  setTimeout(function(){fill.style.strokeDashoffset=String(circ-(circ*sc/100));},80);
+  var gb=document.getElementById('gradeBadge');
+  gb.textContent='Grade: '+(r.analyst_grade||'—');
+  gb.style.cssText+=';'+gradeStyle(r.analyst_grade||'C');
+  document.getElementById('scoreReasoning').textContent=r.score_reasoning||'';
+  var dl=document.getElementById('deductionsList');
+  dl.innerHTML=(r.score_deductions||[]).map(function(d){return'<div class="deduction-item"><div class="deduction-left"><div class="d-reason">'+d.reason+'</div><div class="d-quote">&ldquo;'+d.quote+'&rdquo;</div><div class="d-weight">'+d.weight_explanation+'</div></div><div class="deduction-pts">-'+Math.round(d.points_lost||0)+'<span> pts</span></div></div>';}).join('');
+  var sp=document.getElementById('sentPill');
+  sp.textContent=r.sentiment||'Neutral';
+  sp.style.cssText+=';'+sentStyle(r.sentiment||'Neutral');
+  document.getElementById('sentNote').textContent=r.sentiment_reasoning||'';
+  document.getElementById('cntRed').textContent=r.red_flags_count||0;
+  document.getElementById('cntGreen').textContent=r.positive_signals_count||0;
+  document.getElementById('cntTotal').textContent=(r.flags||[]).length;
+  var ss=r.sub_scores||{};
+  var subDefs=[{key:'transparency',label:'Transparency'},{key:'guidance_quality',label:'Guidance Quality'},{key:'management_credibility',label:'Management Credibility'},{key:'risk_disclosure',label:'Risk Disclosure'},{key:'tone_confidence',label:'Tone & Confidence'}];
+  document.getElementById('subScores').innerHTML=subDefs.map(function(sd){var score=Math.round(ss[sd.key]||0);var exp=ss[sd.key+'_explanation']||'';var highlights=ss[sd.key+'_highlights']||[];var c=subColor(score);return'<div class="sub-card"><div class="sub-card-header"><span class="sub-name">'+sd.label+'</span><span class="sub-num" style="color:'+c+'">'+score+'</span></div><div class="sub-bar-wrap"><div class="sub-bar-fill" style="width:'+score+'%;background:'+c+'"></div></div><div class="sub-explanation">'+exp+'</div><div class="sub-highlights">'+highlights.map(function(h){return'<div class="sub-highlight">&ldquo;'+h+'&rdquo;</div>';}).join('')+'</div></div>';}).join('');
+  document.getElementById('metricsGrid').innerHTML=(r.metrics||[]).map(function(m){return'<div class="metric-card"><div class="metric-label"><span>'+m.label+'</span>'+trendIcon(m.trend)+'</div><div class="metric-value">'+m.value+'</div><div class="metric-note">'+m.note+'</div></div>';}).join('');
+  document.getElementById('flagsList').innerHTML=(r.flags||[]).map(function(f){return'<div class="flag-item s'+f.severity+'"><div class="flag-header"><span class="sev-tag t'+f.severity+'">'+f.severity+'</span><span class="flag-type">'+f.type+'</span></div><div class="flag-quote">&ldquo;'+f.quote+'&rdquo;</div><div class="flag-analysis">'+f.analysis+'</div></div>';}).join('');
+  document.getElementById('questionsList').innerHTML=(r.key_questions||[]).map(function(q,i){return'<div class="q-item"><div class="q-num">Q'+(i+1)+'</div><div class="q-text">'+q+'</div></div>';}).join('');
+  document.getElementById('verdictText').textContent=r.verdict||'';
+  document.getElementById('dsBody').textContent=r.data_methodology||'This analysis is generated using AI-powered natural language processing trained on financial communication patterns, hedge language detection, and earnings call research. Results are based solely on the text of the transcript provided.';
+  var res=document.getElementById('results');
+  res.style.display='block';
+  setTimeout(function(){res.scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+</script>
+</body>
+</html>
