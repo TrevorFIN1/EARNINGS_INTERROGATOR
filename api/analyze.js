@@ -40,9 +40,44 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1200,
+          max_tokens: 1800,
           system: 'You are a Wall Street analyst. Return ONLY a raw JSON object. No markdown. No backticks. Start with { and end with }.',
-          messages: [{ role: 'user', content: `Analyze this earnings call and return JSON with keys: company, quarter, confidence_score (integer 0-100), score_reasoning (2 sentences), sentiment (Bullish or Cautiously Bullish or Neutral or Cautiously Bearish or Bearish), sentiment_reasoning, metrics (array of 3 max with label/value/trend/note), flags (array of 4 max with type/severity/quote/analysis), red_flags_count, positive_signals_count, key_questions (array of 3 strings), verdict (3 sentences), analyst_grade (A or B or C or D or F).\n\nTranscript: ${transcript.slice(0, 2500)}` }]
+          messages: [{ role: 'user', content: `Analyze this earnings call transcript. Return JSON with these exact keys:
+
+company (string),
+quarter (string),
+confidence_score (integer 0-100, whole number),
+score_reasoning (string: 3 sentences explaining exactly why this score, what specific language patterns hurt it, what would have made it higher),
+score_deductions (array of objects with keys: reason (string, specific thing that lowered the score), points_lost (integer, how many points this cost), quote (string, the exact words from transcript that caused this deduction, max 15 words), weight_explanation (string, 1 sentence on why this factor matters more or less than others)),
+sentiment (string: Bullish or Cautiously Bullish or Neutral or Cautiously Bearish or Bearish),
+sentiment_reasoning (string, 1 sentence),
+sub_scores (object with these exact keys:
+  transparency (integer 0-100, how open and specific management was),
+  transparency_explanation (string, 1 sentence),
+  transparency_highlights (array of 2 strings, exact quotes from transcript relevant to this score),
+  guidance_quality (integer 0-100, how specific and useful forward guidance was),
+  guidance_quality_explanation (string, 1 sentence),
+  guidance_quality_highlights (array of 2 strings, exact quotes from transcript relevant to this score),
+  management_credibility (integer 0-100, consistency and track record signals),
+  management_credibility_explanation (string, 1 sentence),
+  management_credibility_highlights (array of 2 strings, exact quotes from transcript relevant to this score),
+  risk_disclosure (integer 0-100, how thoroughly risks were acknowledged),
+  risk_disclosure_explanation (string, 1 sentence),
+  risk_disclosure_highlights (array of 2 strings, exact quotes from transcript relevant to this score),
+  tone_confidence (integer 0-100, how confident vs defensive the tone was),
+  tone_confidence_explanation (string, 1 sentence),
+  tone_confidence_highlights (array of 2 strings, exact quotes from transcript relevant to this score)
+),
+metrics (array of 3 max, each with label, value, trend (up or down or flat or unknown), note (string)),
+flags (array of 4 max, each with type (Hedge Language or Evasion or Risk Signal or Positive Signal or Vague Guidance or Deflection or Buried Risk), severity (Critical or High or Medium or Low or Positive), quote (string max 15 words), analysis (string 2 sentences)),
+red_flags_count (integer),
+positive_signals_count (integer),
+key_questions (array of exactly 3 strings),
+verdict (string, 3 sentences),
+analyst_grade (string: A or B or C or D or F),
+data_methodology (string: 2 sentences explaining that this analysis is based on NLP pattern recognition of the transcript text using established financial communication research, hedge word detection, guidance specificity scoring, and sentiment analysis modeled on academic studies of earnings call language)
+
+Transcript: ${transcript.slice(0, 2500)}` }]
         })
       });
       const d = await r.json();
